@@ -1,0 +1,13 @@
+<web-app xmlns="http://caucho.com/ns/resin">
+
+  <database>
+    <name>jdbc/oracle</name>
+    <driver>
+      <type>oracle.jdbc.pool.OracleConnectionPoolDataSource</type>
+      <url>jdbc:oracle:thin:@localhost:1521:xe</url>
+      <user>noz</user>
+     <password>noz123</password>
+    </driver>
+  </database>
+
+</web-app>
