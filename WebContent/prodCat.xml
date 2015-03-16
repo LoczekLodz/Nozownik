@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProductCatalouge>
+    <date>2015-03-15 22:00:00</date>
+    <Product>
+        <name>Noz 1</name>
+        <description>Description 1</description>
+        <status>InStock</status>
+        <availability>yes</availability>
+        <price>30.00</price>
+        <productImages>
+            <location>prod_1_01.jpg</location>
+        </productImages>
+    </Product>
+    <Product>
+        <name>Noz 2</name>
+        <description>Description 2</description>
+        <status>InStock</status>
+        <availability>yes</availability>
+        <price>45.00</price>
+        <productImages>
+            <location>prod_2_01.jpg</location>
+        </productImages>
+        <productImages>
+            <location>prod_2_02.jpg</location>
+        </productImages>
+        <productDiscount>
+            <dateFrom>2015-03-20 00:00:00</dateFrom>
+            <dateTo>2015-03-25 23:59:59</dateTo>
+            <discount>15.00</discount>
+        </productDiscount>
+    </Product>
+</ProductCatalouge>
