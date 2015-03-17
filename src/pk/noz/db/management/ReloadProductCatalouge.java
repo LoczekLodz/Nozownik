@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,6 +13,7 @@ import javax.ejb.Schedule;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -24,7 +26,6 @@ import pk.noz.db.model.Product;
 import pk.noz.db.model.ProductDiscount;
 import pk.noz.db.model.ProductImage;
 import pk.noz.utils.DateUtilslLib;
-
 
 @Stateless
 public class ReloadProductCatalouge extends DefaultHandler {
@@ -53,6 +54,7 @@ public class ReloadProductCatalouge extends DefaultHandler {
 		logInfo("Product Catalouge - Parsing xml file");
 		parseProdCatFromXml();
 		logInfo("Product Catalouge - Loading into DB");
+		backupAndDeleteOldData();
 		reloadDBProdCat();
 		logInfo("Product Catalouge succesfully loaded from " + prodCatDate.toGMTString());
 	}
@@ -62,6 +64,11 @@ public class ReloadProductCatalouge extends DefaultHandler {
 	}
 	
 	private void parseProdCatFromXml() {
+		//clear old temporary lists
+		productCatList.clear();
+		tmpProdDiscList.clear();
+		tmpProdImageList.clear();
+		
 		SAXParserFactory spf = SAXParserFactory.newInstance();
 			
 		try {
@@ -101,6 +108,8 @@ public class ReloadProductCatalouge extends DefaultHandler {
 			tmpProd.setProductImages(tmpProdImageList);
 			tmpProd.setProductDiscount(tmpProdDiscList);
 			productCatList.add(tmpProd);
+			tmpProdDiscList = new HashSet<ProductDiscount>(5);
+			tmpProdImageList = new HashSet<ProductImage>(5);
 		} else if (qName.equals("productImages")) {
 			tmpProdImageList.add(tmpProdImage);
 		} else if (qName.equals("productDiscount")) {
@@ -140,14 +149,17 @@ public class ReloadProductCatalouge extends DefaultHandler {
 		}
 	}
 	
+	private void backupAndDeleteOldData() {
+		Query q = em.createNamedQuery("findAllProds");
+		@SuppressWarnings("unchecked")
+		final List<Product> products = q.getResultList();
+		for (Product p : products) {
+			em.remove(p);
+		}
+	}
+	
 	private void reloadDBProdCat() {
 		for (Product p : productCatList) {
-			for (ProductImage pi : p.getProductImages()) {
-				em.persist(pi);
-			}
-			for (ProductDiscount pd : p.getProductDiscount()) {
-				em.persist(pd);
-			}
 			em.persist(p);
 		}
 	}
