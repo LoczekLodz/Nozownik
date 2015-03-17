@@ -23,9 +23,9 @@ public class ProductTO implements Serializable {
 
 	private BigDecimal price;
 	
-	private Set<ProductImage> productImages;
+	private Set<ProductImageTO> productImages;
 	
-	private Set<ProductDiscount> productDiscount;
+	private Set<ProductDiscountTO> productDiscount;
 
 	public long getId() {
 		return id;
@@ -75,19 +75,19 @@ public class ProductTO implements Serializable {
 		this.price = price;
 	}
 
-	public Set<ProductImage> getProductImages() {
+	public Set<ProductImageTO> getProductImages() {
 		return productImages;
 	}
 
-	public void setProductImages(Set<ProductImage> productImages) {
+	public void setProductImages(Set<ProductImageTO> productImages) {
 		this.productImages = productImages;
 	}
 
-	public Set<ProductDiscount> getProductDiscount() {
+	public Set<ProductDiscountTO> getProductDiscount() {
 		return productDiscount;
 	}
 
-	public void setProductDiscount(Set<ProductDiscount> productDiscount) {
+	public void setProductDiscount(Set<ProductDiscountTO> productDiscount) {
 		this.productDiscount = productDiscount;
 	}
 	

@@ -21,7 +21,7 @@ import javax.persistence.Table;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Access(AccessType.FIELD)
-@Table(name = "product_image_t")
+@Table(name = "product_discount_t")
 public class ProductDiscount implements Serializable {
 
 	/**

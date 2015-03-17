@@ -1,6 +1,10 @@
 package pk.noz.db.management;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,8 +18,12 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-
 import org.xml.sax.helpers.DefaultHandler;
+
+import pk.noz.db.model.Product;
+import pk.noz.db.model.ProductDiscount;
+import pk.noz.db.model.ProductImage;
+import pk.noz.utils.DateUtilslLib;
 
 
 @Stateless
@@ -23,19 +31,34 @@ public class ReloadProductCatalouge extends DefaultHandler {
 	
 	private Logger logger = Logger.getLogger("com.apress.javaee6");
 
-	private String tempVal;
+	private String tagValue;
+	private Set<Product> productCatList= new HashSet<Product>(30);
+	
+	private Product tmpProd;
+	private ProductDiscount tmpProdDisc;
+	private ProductImage tmpProdImage;
+	
+	private Set<ProductDiscount> tmpProdDiscList = new HashSet<ProductDiscount>(5);
+	private Set<ProductImage> tmpProdImageList = new HashSet<ProductImage>(5);
+	
+	private Date prodCatDate;
 	
 	@PersistenceContext
 	private EntityManager em;
 	  
-	@Schedule(second="0", minute="30",hour="23", persistent=true)
+	@SuppressWarnings("deprecation")
+	@Schedule(second="*/5", minute="*",hour="*", persistent=true)
 	public void reloadProdCat() {
-		testAction();
+		logInfo("Product Catalouge - Starting reloading procedure");
+		logInfo("Product Catalouge - Parsing xml file");
 		parseProdCatFromXml();
+		logInfo("Product Catalouge - Loading into DB");
+		reloadDBProdCat();
+		logInfo("Product Catalouge succesfully loaded from " + prodCatDate.toGMTString());
 	}
 	
-	private void testAction() {
-		logger.log(Level.INFO, "Dzia³a");
+	private void logInfo(String s) {
+		logger.log(Level.INFO, s);
 	}
 	
 	private void parseProdCatFromXml() {
@@ -43,7 +66,7 @@ public class ReloadProductCatalouge extends DefaultHandler {
 			
 		try {
 			SAXParser sp = spf.newSAXParser();
-			sp.parse("employees.xml", this);
+			sp.parse("webapps/Nozownik/prodCat.xml", this);
 			
 		} catch (SAXException se) {
 			se.printStackTrace();
@@ -56,34 +79,76 @@ public class ReloadProductCatalouge extends DefaultHandler {
 	
 	//Event Handlers
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-//		//reset
-//		tempVal = "";
-//		if(qName.equalsIgnoreCase("Employee")) {
-//			//create a new instance of employee
-//			tempEmp = new Employee();
-//			tempEmp.setType(attributes.getValue("type"));
-//		}
+		tagValue = "";
+		if(qName.equals("Product")) {
+			tmpProd = new Product();
+		}
+		if(qName.equals("productImages")) {
+			tmpProdImage = new ProductImage();
+		}
+		if(qName.equals("productDiscount")) {
+			tmpProdDisc = new ProductDiscount();
+		}
 	}
 	
 	public void characters(char[] ch, int start, int length) throws SAXException {
-//		tempVal = new String(ch,start,length);
+		tagValue = new String(ch,start,length);
 	}
 	
 	public void endElement(String uri, String localName, String qName) throws SAXException {
-//
-//		if(qName.equalsIgnoreCase("Employee")) {
-//			//add it to the list
-//			myEmpls.add(tempEmp);
-//			
-//		}else if (qName.equalsIgnoreCase("Name")) {
-//			tempEmp.setName(tempVal);
-//		}else if (qName.equalsIgnoreCase("Id")) {
-//			tempEmp.setId(Integer.parseInt(tempVal));
-//		}else if (qName.equalsIgnoreCase("Age")) {
-//			tempEmp.setAge(Integer.parseInt(tempVal));
-//		}
-//		
+
+		if(qName.equals("Product")) {
+			tmpProd.setProductImages(tmpProdImageList);
+			tmpProd.setProductDiscount(tmpProdDiscList);
+			productCatList.add(tmpProd);
+		} else if (qName.equals("productImages")) {
+			tmpProdImageList.add(tmpProdImage);
+		} else if (qName.equals("productDiscount")) {
+			tmpProdDiscList.add(tmpProdDisc);
+		}
+		//Product parsing
+		else if (qName.equals("name")) {
+			tmpProd.setName(tagValue);
+		} else if (qName.equals("description")) {
+			tmpProd.setDescription(tagValue);
+		} else if (qName.equals("status")) {
+			tmpProd.setStatus(tagValue);
+		} else if (qName.equals("availability")) {
+			tmpProd.setAvailability(Boolean.parseBoolean(tagValue));
+		} else if (qName.equals("price")) {
+			tagValue.replace(",", ".");
+			tmpProd.setPrice(new BigDecimal(tagValue));
+		}
+		//Product Images parsing
+		else if (qName.equals("location")) {
+			tmpProdImage.setParentProd(tmpProd);
+			tmpProdImage.setLocation(tagValue);
+		}
+		//Product Discounts parsing
+		else if (qName.equals("dateFrom")) {
+			tmpProdDisc.setDateFrom(DateUtilslLib.parseXmlDate(tagValue));
+		} else if (qName.equals("dateTo")) {
+			tmpProdDisc.setDateTo(DateUtilslLib.parseXmlDate(tagValue));
+		} else if (qName.equals("discount")) {
+			tagValue.replaceAll(",", ".");
+			tmpProdDisc.setDiscount(new BigDecimal(tagValue));
+			tmpProdDisc.setParentProd(tmpProd);
+		}
+		//Product Cat date
+		else if (qName.equals("date")) {
+			prodCatDate = DateUtilslLib.parseXmlDate(tagValue);
+		}
 	}
 	
-	
+	private void reloadDBProdCat() {
+		for (Product p : productCatList) {
+			for (ProductImage pi : p.getProductImages()) {
+				em.persist(pi);
+			}
+			for (ProductDiscount pd : p.getProductDiscount()) {
+				em.persist(pd);
+			}
+			em.persist(p);
+		}
+	}
 }
