@@ -45,6 +45,8 @@ public class Product implements Serializable {
 	private String name;
 	
 	private String description;
+	
+	private String referenceNumber;
 
 	private BigDecimal price;
 	
@@ -108,6 +110,14 @@ public class Product implements Serializable {
 
 	public void setProductDiscount(Set<ProductDiscount> productDiscount) {
 		this.productDiscount = productDiscount;
+	}
+
+	public String getReferenceNumber() {
+		return referenceNumber;
+	}
+
+	public void setReferenceNumber(String referenceNumber) {
+		this.referenceNumber = referenceNumber;
 	}
 	
 }

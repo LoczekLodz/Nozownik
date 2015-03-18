@@ -6,6 +6,7 @@
         <description>Description 1</description>
         <status>InStock</status>
         <availability>true</availability>
+        <reference>prod_01_01</reference>
         <price>30.00</price>
         <productImages>
             <location>prod_1_01.jpg</location>
@@ -16,6 +17,7 @@
         <description>Description 2</description>
         <status>InStock</status>
         <availability>true</availability>
+        <reference>prod_01_02</reference>
         <price>45.00</price>
         <productImages>
             <location>prod_2_01.jpg</location>

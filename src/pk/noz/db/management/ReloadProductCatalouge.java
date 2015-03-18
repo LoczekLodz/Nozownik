@@ -48,7 +48,7 @@ public class ReloadProductCatalouge extends DefaultHandler {
 	private EntityManager em;
 	  
 	@SuppressWarnings("deprecation")
-	@Schedule(second="*/5", minute="*",hour="*", persistent=true)
+	@Schedule(second="0", minute="30",hour="23", persistent=true)
 	public void reloadProdCat() {
 		logInfo("Product Catalouge - Starting reloading procedure");
 		logInfo("Product Catalouge - Parsing xml file");
@@ -124,6 +124,8 @@ public class ReloadProductCatalouge extends DefaultHandler {
 			tmpProd.setStatus(tagValue);
 		} else if (qName.equals("availability")) {
 			tmpProd.setAvailability(Boolean.parseBoolean(tagValue));
+		} else if (qName.equals("reference")) {
+			tmpProd.setReferenceNumber(tagValue);
 		} else if (qName.equals("price")) {
 			tagValue.replace(",", ".");
 			tmpProd.setPrice(new BigDecimal(tagValue));
